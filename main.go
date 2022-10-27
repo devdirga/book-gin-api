@@ -1,29 +1,26 @@
 package main
 
 import (
+	"go/gin-api/controllers"
+	"go/gin-api/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// report branch
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	models.ConnectDatabase()
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status":   200,
-			"message":  "pong",
-			"is_error": false,
-			"data": gin.H{
-				"reference_number": "{{reference_number}}",
-				"channel_id":       "{{channel_id}}",
-				"info":             "randomstring",
-				"otp_type":         0,
-				"token":            "{{register_token}}",
-				"otp_channel":      0,
-			},
+			"status":  200,
+			"message": "pong",
 		})
 	})
+	r.GET("books", controllers.FindBooks)
+	r.POST("book", controllers.CreateBook)
+	r.PUT("book/:id", controllers.UpdateBook)
+	r.DELETE("book/:id", controllers.DeleteBook)
 	r.Run()
 }
