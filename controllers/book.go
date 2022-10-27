@@ -3,8 +3,11 @@ package controllers
 import (
 	"go/gin-api/models"
 	"net/http"
+	"path"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type CreateBookInput struct {
@@ -42,7 +45,7 @@ func CreateBook(c *gin.Context) {
 func UpdateBook(c *gin.Context) {
 	var book models.Book
 	if err := models.DB.Where("id=?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "record not found"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	var input UpdateBookInput
@@ -56,9 +59,24 @@ func UpdateBook(c *gin.Context) {
 func DeleteBook(c *gin.Context) {
 	var book models.Book
 	if err := models.DB.Where("id=?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "data not found"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	models.DB.Delete(&book)
 	c.JSON(http.StatusOK, gin.H{"data": true})
+}
+func SaveFileHandler(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// c.JSON(http.StatusOK, gin.H{"data": file.Filename})
+	extension := filepath.Ext(file.Filename)
+	newFileName := uuid.New().String() + extension
+	if err := c.SaveUploadedFile(file, path.Join("upload", newFileName)); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
