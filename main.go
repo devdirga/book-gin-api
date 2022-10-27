@@ -19,6 +19,7 @@ func main() {
 		})
 	})
 	r.GET("books", controllers.FindBooks)
+	r.GET("book/:id", controllers.FindBook)
 	r.POST("book", controllers.CreateBook)
 	r.PUT("book/:id", controllers.UpdateBook)
 	r.DELETE("book/:id", controllers.DeleteBook)
