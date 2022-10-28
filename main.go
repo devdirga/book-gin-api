@@ -23,7 +23,6 @@ func main() {
 	r.POST("book", controllers.CreateBook)
 	r.PUT("book/:id", controllers.UpdateBook)
 	r.DELETE("book/:id", controllers.DeleteBook)
-
 	r.POST("upload", controllers.SaveFileHandler)
 	r.Run()
 }
