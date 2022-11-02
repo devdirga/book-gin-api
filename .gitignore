@@ -16,3 +16,4 @@
 gin-api
 test.db
 upload/
+.DS_Store
