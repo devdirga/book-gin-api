@@ -14,66 +14,66 @@ import (
 	"github.com/google/uuid"
 )
 
-const SMTP_HOST, SMTP_PORT = "smtp.gmail.com", 587
-const SENDER_NAME = "PT. Digital Creative Studio <dirgantoro.facebook@gmail.com>"
-const AUTH_EMAIL, AUTH_PASSWORD = "dirgantoro.facebook@gmail.com", "clzciwwmpbidehpk"
+const HOST, PORT = "smtp.gmail.com", 587
+const SENDER = "PT. Digital Creative Studio <dirgantoro.facebook@gmail.com>"
+const EMAIL, PASSWORD = "dirgantoro.facebook@gmail.com", "clzciwwmpbidehpk"
 
-type CreateBookInput struct {
+type CInput struct {
 	Title  string `json:"title" binding:"required"`
 	Author string `json:"author" binding:"required"`
 }
-type UpdateBookInput struct {
+type UInput struct {
 	Title  string `json:"title"`
 	Author string `json:"author"`
 }
-type SendMailInput struct {
+type SInput struct {
 	Email string `json:"email" binding:"required"`
 }
 
 func Finds(c *gin.Context) {
-	var books []models.Book
-	models.DB.Find(&books)
-	c.JSON(http.StatusOK, gin.H{"data": books})
+	var b []models.Book
+	models.DB.Find(&b)
+	c.JSON(http.StatusOK, gin.H{"data": b})
 }
 func Find(c *gin.Context) {
-	var book models.Book
-	if err := models.DB.Where("id=?", c.Param("id")).First(&book).Error; err != nil {
+	var b models.Book
+	if err := models.DB.Where("id=?", c.Param("id")).First(&b).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": book})
+	c.JSON(http.StatusOK, gin.H{"data": b})
 }
 func Create(c *gin.Context) {
-	var input CreateBookInput
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var i CInput
+	if err := c.ShouldBindJSON(&i); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	book := models.Book{Title: input.Title, Author: input.Author}
-	models.DB.Create(&book)
-	c.JSON(http.StatusOK, gin.H{"data": book})
+	b := models.Book{Title: i.Title, Author: i.Author}
+	models.DB.Create(&b)
+	c.JSON(http.StatusOK, gin.H{"data": b})
 }
 func Update(c *gin.Context) {
-	var book models.Book
-	if err := models.DB.Where("id=?", c.Param("id")).First(&book).Error; err != nil {
+	var b models.Book
+	if err := models.DB.Where("id=?", c.Param("id")).First(&b).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var input UpdateBookInput
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var i UInput
+	if err := c.ShouldBindJSON(&i); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	models.DB.Model(&book).Updates(input)
-	c.JSON(http.StatusOK, gin.H{"data": book})
+	models.DB.Model(&b).Updates(i)
+	c.JSON(http.StatusOK, gin.H{"data": b})
 }
 func Delete(c *gin.Context) {
-	var book models.Book
-	if err := models.DB.Where("id=?", c.Param("id")).First(&book).Error; err != nil {
+	var b models.Book
+	if err := models.DB.Where("id=?", c.Param("id")).First(&b).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	models.DB.Delete(&book)
+	models.DB.Delete(&b)
 	c.JSON(http.StatusOK, gin.H{"data": true})
 }
 func SaveFileHandler(c *gin.Context) {
@@ -91,7 +91,7 @@ func SaveFileHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 func SendMail(c *gin.Context) {
-	var input SendMailInput
+	var input SInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -107,10 +107,8 @@ func SendMail(c *gin.Context) {
 }
 func sendMailer(to []string, cc []string, subject, message string) error {
 	err := smtp.SendMail(
-		fmt.Sprintf("%s:%d", SMTP_HOST, SMTP_PORT),
-		smtp.PlainAuth("", AUTH_EMAIL, AUTH_PASSWORD, SMTP_HOST),
-		AUTH_EMAIL,
-		append(to, cc...), []byte(fmt.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", SENDER_NAME, strings.Join(to, ","), strings.Join(cc, ","), subject, message)))
+		fmt.Sprintf("%s:%d", HOST, PORT), smtp.PlainAuth("", EMAIL, PASSWORD, HOST), EMAIL,
+		append(to, cc...), []byte(fmt.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", SENDER, strings.Join(to, ","), strings.Join(cc, ","), subject, message)))
 	if err != nil {
 		return err
 	}
