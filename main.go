@@ -18,11 +18,12 @@ func main() {
 			"message": "pong",
 		})
 	})
-	r.GET("books", controllers.FindBooks)
-	r.GET("book/:id", controllers.FindBook)
-	r.POST("book", controllers.CreateBook)
-	r.PUT("book/:id", controllers.UpdateBook)
-	r.DELETE("book/:id", controllers.DeleteBook)
+	r.GET("books", controllers.Finds)
+	r.GET("book/:id", controllers.Find)
+	r.POST("book", controllers.Create)
+	r.PUT("book/:id", controllers.Update)
+	r.DELETE("book/:id", controllers.Delete)
 	r.POST("upload", controllers.SaveFileHandler)
+	r.POST("email", controllers.SendMail)
 	r.Run()
 }
