@@ -18,12 +18,15 @@ func main() {
 			"message": "pong",
 		})
 	})
-	r.GET("books", controllers.Finds)
-	r.GET("book/:id", controllers.Find)
-	r.POST("book", controllers.Create)
-	r.PUT("book/:id", controllers.Update)
-	r.DELETE("book/:id", controllers.Delete)
-	r.POST("upload", controllers.SaveFileHandler)
-	r.POST("email", controllers.SendMail)
+	v1 := r.Group("/v1")
+	{
+		v1.GET("books", controllers.Finds)
+		v1.GET("book/:id", controllers.Find)
+		v1.POST("book", controllers.Create)
+		v1.PUT("book/:id", controllers.Update)
+		v1.DELETE("book/:id", controllers.Delete)
+		v1.POST("upload", controllers.SaveFileHandler)
+		v1.POST("email", controllers.SendMail)
+	}
 	r.Run()
 }
