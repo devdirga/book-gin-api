@@ -14,10 +14,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const HOST, PORT = "smtp.gmail.com", 587
-const SENDER = "PT. Digital Creative Studio <dirgantoro.facebook@gmail.com>"
-const EMAIL, PASSWORD = "dirgantoro.facebook@gmail.com", "clzciwwmpbidehpk"
-
 type CInput struct {
 	Title  string `json:"title" binding:"required"`
 	Author string `json:"author" binding:"required"`
@@ -35,6 +31,7 @@ func Finds(c *gin.Context) {
 	models.DB.Find(&b)
 	c.JSON(http.StatusOK, gin.H{"data": b})
 }
+
 func Find(c *gin.Context) {
 	var b models.Book
 	if err := models.DB.Where("id=?", c.Param("id")).First(&b).Error; err != nil {
@@ -53,6 +50,7 @@ func Create(c *gin.Context) {
 	models.DB.Create(&b)
 	c.JSON(http.StatusOK, gin.H{"data": b})
 }
+
 func Update(c *gin.Context) {
 	var b models.Book
 	if err := models.DB.Where("id=?", c.Param("id")).First(&b).Error; err != nil {
@@ -107,10 +105,40 @@ func SendMail(c *gin.Context) {
 }
 func sendMailer(to []string, cc []string, subject, message string) error {
 	err := smtp.SendMail(
-		fmt.Sprintf("%s:%d", HOST, PORT), smtp.PlainAuth("", EMAIL, PASSWORD, HOST), EMAIL,
-		append(to, cc...), []byte(fmt.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", SENDER, strings.Join(to, ","), strings.Join(cc, ","), subject, message)))
+		fmt.Sprintf("%s:%d", models.Host, models.Port), smtp.PlainAuth("", models.Email, models.Password, models.Host), models.Email,
+		append(to, cc...), []byte(fmt.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", models.Sender, strings.Join(to, ","), strings.Join(cc, ","), subject, message)))
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func CreateQuery(c *gin.Context) {
+	var i CInput
+	err := c.ShouldBindJSON(&i)
+	models.Book.HandleError(models.Book{}, c, err)
+	tx, err := models.SqliteDb.Begin()
+	models.Book.HandleError(models.Book{}, c, err)
+	stmt, err := tx.Prepare(models.Insert)
+	models.Book.HandleError(models.Book{}, c, err)
+	defer stmt.Close()
+	_, err = stmt.Exec(i.Title, i.Author)
+	models.Book.HandleError(models.Book{}, c, err)
+	tx.Commit()
+	c.JSON(http.StatusOK, gin.H{"data": true})
+}
+func FindsQuery(c *gin.Context) {
+	rws, err := models.SqliteDb.Query(models.Finds)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rws.Close()
+	bs := make([]models.Book, 0)
+	b := models.Book{}
+	for rws.Next() {
+		rws.Scan(&b.ID, &b.Title, &b.Author)
+		bs = append(bs, b)
+	}
+	c.JSON(http.StatusOK, gin.H{"datas": bs})
 }
