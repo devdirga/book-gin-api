@@ -12,7 +12,7 @@ type Book struct {
 	Author string `json:"author"`
 }
 
-var Create = "CREATE TABLE IF NOT EXISTS books (id INTEGER PRIMARY KEY AUTOINCREMENT, title text NOT NULL, author text NOT NULL);"
+var Create = "create table if not exists books (id integer primary key autoincrement, title text not null, author text not null);"
 var Insert = "insert into books(title,author)VALUES(?,?)"
 var Update = "update books set title=?,author=? where id=?"
 var Delete = "delete from books where id=?"
