@@ -1,11 +1,5 @@
 package models
 
-import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-)
-
 type Book struct {
 	ID     uint   `json:"id"`
 	Title  string `json:"title"`
@@ -25,16 +19,7 @@ var Sender = "PT. Digital Creative Studio <dirgantoro.facebook@gmail.com>"
 var Email = "dirgantoro.facebook@gmail.com"
 var Password = "clzciwwmpbidehpk"
 
-func (b Book) HandleError(c *gin.Context, err error) {
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-}
-
-func HandleErrorx(c *gin.Context, err error) {
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-}
+var MessageSuccessCreate = "Success create book"
+var MessageSuccessFinds = "Success find books"
+var MessageSuccessFind = "Success find book"
+var MessageSuccessDelete = "Success delete book"
