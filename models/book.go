@@ -7,11 +7,12 @@ import (
 )
 
 type Book struct {
-	ID     uint   `json:"id" gorm:"primary_key"`
+	ID     uint   `json:"id"`
 	Title  string `json:"title"`
 	Author string `json:"author"`
 }
 
+var Create = "CREATE TABLE IF NOT EXISTS books (id INTEGER PRIMARY KEY AUTOINCREMENT, title text NOT NULL, author text NOT NULL);"
 var Insert = "insert into books(title,author)VALUES(?,?)"
 var Update = "update books set title=?,author=? where id=?"
 var Delete = "delete from books where id=?"

@@ -34,7 +34,7 @@ func Insert(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	transaction, err := models.SqliteDb.Begin()
+	transaction, err := models.Db.Begin()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -57,7 +57,7 @@ func Insert(c *gin.Context) {
 // StartTLS sends the STARTTLS command and encrypts all further communication.
 // Only servers that advertise the STARTTLS extension support this function.
 func Finds(c *gin.Context) {
-	rows, err := models.SqliteDb.Query(models.Finds)
+	rows, err := models.Db.Query(models.Finds)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -76,7 +76,7 @@ func Finds(c *gin.Context) {
 // Only servers that advertise the STARTTLS extension support this function.
 func Find(c *gin.Context) {
 	var book models.Book
-	row := models.SqliteDb.QueryRow(models.Find, c.Param("id"))
+	row := models.Db.QueryRow(models.Find, c.Param("id"))
 	err := row.Scan(&book.ID, &book.Title, &book.Author)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -88,7 +88,7 @@ func Find(c *gin.Context) {
 // StartTLS sends the STARTTLS command and encrypts all further communication.
 // Only servers that advertise the STARTTLS extension support this function.
 func Delete(c *gin.Context) {
-	if _, err := models.SqliteDb.Exec(models.Delete, c.Param("id")); err != nil {
+	if _, err := models.Db.Exec(models.Delete, c.Param("id")); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

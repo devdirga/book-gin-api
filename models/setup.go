@@ -6,13 +6,26 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-var SqliteDb *sql.DB
+var Db *sql.DB
 
 func Conn() error {
-	db, err := sql.Open("sqlite3", "test.db")
+	db, err := sql.Open("sqlite3", "book.db")
 	if err != nil {
 		return err
 	}
-	SqliteDb = db
+	trans, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := trans.Prepare(Create)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	if _, err = stmt.Exec(); err != nil {
+		return err
+	}
+	trans.Commit()
+	Db = db
 	return nil
 }
