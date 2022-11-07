@@ -81,7 +81,7 @@ func Delete(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessDelete})
 }
-func SaveFileHandler(c *gin.Context) {
+func Upload(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
@@ -93,20 +93,20 @@ func SaveFileHandler(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": "ok"})
+	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessUpload})
 }
-func SendMail(c *gin.Context) {
+func Mail(c *gin.Context) {
 	var input SInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	to, cc := []string{input.Email}, []string{}
-	sbj, msg := "GoMailer", "Send mail with smtp golang\n\nBest Regard,\nDirgantoro(CEO)\nRiko Primada(CTO)"
+	sbj, msg := "GoMailer", "Mailing with Smtp-Golang\n\nBest Regard,\nDirgantoro\t(CEO)"
 	if err := Mailer(to, cc, sbj, msg); err != nil {
 		log.Fatal(err.Error())
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": "success"})
+	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessMail})
 }
 func Mailer(to []string, cc []string, subject, message string) error {
 	err := smtp.SendMail(

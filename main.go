@@ -17,8 +17,8 @@ func main() {
 		v1.GET("books", controllers.Finds)
 		v1.GET("book/:id", controllers.Find)
 		v1.DELETE("book/:id", controllers.Delete)
-		v1.POST("upload", controllers.SaveFileHandler)
-		v1.POST("email", controllers.SendMail)
+		v1.POST("upload", controllers.Upload)
+		v1.POST("email", controllers.Mail)
 	}
 	r.Run()
 }
