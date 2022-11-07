@@ -20,5 +20,12 @@ func main() {
 		v1.POST("upload", controllers.Upload)
 		v1.POST("email", controllers.Mail)
 	}
+	v2 := r.Group("/v2")
+	{
+		v2.POST("article", controllers.Insert)
+		v2.GET("articles", controllers.Finds)
+		v2.GET("article/:id", controllers.Find)
+		v2.DELETE("article/:id", controllers.Delete)
+	}
 	r.Run()
 }
