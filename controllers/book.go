@@ -26,68 +26,94 @@ type SInput struct {
 	Email string `json:"email" binding:"required"`
 }
 
-func Finds(c *gin.Context) {
-	var b []models.Book
-	models.DB.Find(&b)
-	c.JSON(http.StatusOK, gin.H{"data": b})
-}
-
-func Find(c *gin.Context) {
-	var b models.Book
-	if err := models.DB.Where("id=?", c.Param("id")).First(&b).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// StartTLS sends the STARTTLS command and encrypts all further communication.
+// Only servers that advertise the STARTTLS extension support this function.
+func Insert(c *gin.Context) {
+	var input CInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": b})
-}
-func Create(c *gin.Context) {
-	var i CInput
-	if err := c.ShouldBindJSON(&i); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	transaction, err := models.SqliteDb.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	b := models.Book{Title: i.Title, Author: i.Author}
-	models.DB.Create(&b)
-	c.JSON(http.StatusOK, gin.H{"data": b})
-}
-
-func Update(c *gin.Context) {
-	var b models.Book
-	if err := models.DB.Where("id=?", c.Param("id")).First(&b).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	statement, err := transaction.Prepare(models.Insert)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	var i UInput
-	if err := c.ShouldBindJSON(&i); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	defer statement.Close()
+	_, err = statement.Exec(input.Title, input.Author)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	models.DB.Model(&b).Updates(i)
-	c.JSON(http.StatusOK, gin.H{"data": b})
-}
-func Delete(c *gin.Context) {
-	var b models.Book
-	if err := models.DB.Where("id=?", c.Param("id")).First(&b).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	models.DB.Delete(&b)
+	transaction.Commit()
 	c.JSON(http.StatusOK, gin.H{"data": true})
 }
+
+// StartTLS sends the STARTTLS command and encrypts all further communication.
+// Only servers that advertise the STARTTLS extension support this function.
+func Finds(c *gin.Context) {
+	rows, err := models.SqliteDb.Query(models.Finds)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+	books := make([]models.Book, 0)
+	book := models.Book{}
+	for rows.Next() {
+		rows.Scan(&book.ID, &book.Title, &book.Author)
+		books = append(books, book)
+	}
+	c.JSON(http.StatusOK, gin.H{"data": books})
+}
+
+// StartTLS sends the STARTTLS command and encrypts all further communication.
+// Only servers that advertise the STARTTLS extension support this function.
+func Find(c *gin.Context) {
+	var book models.Book
+	row := models.SqliteDb.QueryRow(models.Find, c.Param("id"))
+	err := row.Scan(&book.ID, &book.Title, &book.Author)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": book})
+}
+
+// StartTLS sends the STARTTLS command and encrypts all further communication.
+// Only servers that advertise the STARTTLS extension support this function.
+func Delete(c *gin.Context) {
+	if _, err := models.SqliteDb.Exec(models.Delete, c.Param("id")); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"msg": "success"})
+}
+
+// StartTLS sends the STARTTLS command and encrypts all further communication.
+// Only servers that advertise the STARTTLS extension support this function.
 func SaveFileHandler(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	extension := filepath.Ext(file.Filename)
-	newFileName := uuid.New().String() + extension
-	if err := c.SaveUploadedFile(file, path.Join("upload", newFileName)); err != nil {
+	ext := filepath.Ext(file.Filename)
+	newFile := uuid.New().String() + ext
+	if err := c.SaveUploadedFile(file, path.Join("upload", newFile)); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+	c.JSON(http.StatusOK, gin.H{"msg": "ok"})
 }
+
+// StartTLS sends the STARTTLS command and encrypts all further communication.
+// Only servers that advertise the STARTTLS extension support this function.
 func SendMail(c *gin.Context) {
 	var input SInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -95,14 +121,15 @@ func SendMail(c *gin.Context) {
 		return
 	}
 	to, cc := []string{input.Email}, []string{}
-	subject, message := "GoMailer", "Send mail with smtp golang\n\n"+
-		"Best Regard,\nDirgantoro(CEO)\nRiko Primada(CTO)"
-	if err := sendMailer(to, cc, subject, message); err != nil {
+	sbj, msg := "GoMailer", "Send mail with smtp golang\n\nBest Regard,\nDirgantoro(CEO)\nRiko Primada(CTO)"
+	if err := sendMailer(to, cc, sbj, msg); err != nil {
 		log.Fatal(err.Error())
 	}
-	log.Println("Mail sent!")
-	c.JSON(http.StatusOK, gin.H{"data": true})
+	c.JSON(http.StatusOK, gin.H{"msg": "success"})
 }
+
+// StartTLS sends the STARTTLS command and encrypts all further communication.
+// Only servers that advertise the STARTTLS extension support this function.
 func sendMailer(to []string, cc []string, subject, message string) error {
 	err := smtp.SendMail(
 		fmt.Sprintf("%s:%d", models.Host, models.Port), smtp.PlainAuth("", models.Email, models.Password, models.Host), models.Email,
@@ -111,34 +138,4 @@ func sendMailer(to []string, cc []string, subject, message string) error {
 		return err
 	}
 	return nil
-}
-
-func CreateQuery(c *gin.Context) {
-	var i CInput
-	err := c.ShouldBindJSON(&i)
-	models.Book.HandleError(models.Book{}, c, err)
-	tx, err := models.SqliteDb.Begin()
-	models.Book.HandleError(models.Book{}, c, err)
-	stmt, err := tx.Prepare(models.Insert)
-	models.Book.HandleError(models.Book{}, c, err)
-	defer stmt.Close()
-	_, err = stmt.Exec(i.Title, i.Author)
-	models.Book.HandleError(models.Book{}, c, err)
-	tx.Commit()
-	c.JSON(http.StatusOK, gin.H{"data": true})
-}
-func FindsQuery(c *gin.Context) {
-	rws, err := models.SqliteDb.Query(models.Finds)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	defer rws.Close()
-	bs := make([]models.Book, 0)
-	b := models.Book{}
-	for rws.Next() {
-		rws.Scan(&b.ID, &b.Title, &b.Author)
-		bs = append(bs, b)
-	}
-	c.JSON(http.StatusOK, gin.H{"datas": bs})
 }
