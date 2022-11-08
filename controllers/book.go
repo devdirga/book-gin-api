@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"fmt"
-	"go/gin-api/models"
+	f "fmt"
+	m "go/gin-api/models"
 	"log"
 	"net/http"
 	"net/smtp"
@@ -34,54 +34,54 @@ func Insert(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	transaction, err := models.Db.Begin()
+	transaction, err := m.Db.Begin()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	statement, err := transaction.Prepare(models.Insert)
+	stmnt, err := transaction.Prepare(m.Insert)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	defer statement.Close()
-	if _, err = statement.Exec(input.Title, input.Author); err != nil {
+	defer stmnt.Close()
+	if _, err = stmnt.Exec(input.Title, input.Author); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
 	transaction.Commit()
-	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessCreate})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccCreate})
 }
 func Finds(c *gin.Context) {
-	rows, err := models.Db.Query(models.Finds)
+	rows, err := m.Db.Query(m.Finds)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
 	defer rows.Close()
-	books := make([]models.Book, 0)
-	book := models.Book{}
+	books := make([]m.Book, 0)
+	book := m.Book{}
 	for rows.Next() {
 		rows.Scan(&book.ID, &book.Title, &book.Author)
 		books = append(books, book)
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessFinds, "data": books, "language": "世界"})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccFinds, "data": books, "language": "世界"})
 }
 func Find(c *gin.Context) {
-	var book models.Book
-	row := models.Db.QueryRow(models.Find, c.Param("id"))
+	var book m.Book
+	row := m.Db.QueryRow(m.Find, c.Param("id"))
 	if err := row.Scan(&book.ID, &book.Title, &book.Author); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessFind, "data": book})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccFind, "data": book})
 }
 func Delete(c *gin.Context) {
-	if _, err := models.Db.Exec(models.Delete, c.Param("id")); err != nil {
+	if _, err := m.Db.Exec(m.Delete, c.Param("id")); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessDelete})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccDelete})
 }
 func Upload(c *gin.Context) {
 	file, err := c.FormFile("file")
@@ -92,10 +92,10 @@ func Upload(c *gin.Context) {
 	ext := filepath.Ext(file.Filename)
 	newFile := uuid.New().String() + ext
 	if err := c.SaveUploadedFile(file, path.Join("upload", newFile)); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessUpload})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccUpload})
 }
 func Mail(c *gin.Context) {
 	var input SInput
@@ -107,12 +107,12 @@ func Mail(c *gin.Context) {
 	if err := Mailer(to, cc, input.Subject, input.Message); err != nil {
 		log.Fatal(err.Error())
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessMail})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccMail})
 }
 func Mailer(to []string, cc []string, subject, message string) error {
 	err := smtp.SendMail(
-		fmt.Sprintf("%s:%d", models.Host, models.Port), smtp.PlainAuth("", models.Email, models.Password, models.Host), models.Email,
-		append(to, cc...), []byte(fmt.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", models.Sender, strings.Join(to, ","), strings.Join(cc, ","), subject, message)))
+		f.Sprintf("%s:%d", m.Host, m.Port), smtp.PlainAuth("", m.Email, m.Password, m.Host), m.Email,
+		append(to, cc...), []byte(f.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", m.Sender, strings.Join(to, ","), strings.Join(cc, ","), subject, message)))
 	if err != nil {
 		return err
 	}
