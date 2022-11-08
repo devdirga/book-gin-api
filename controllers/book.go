@@ -23,7 +23,8 @@ type UInput struct {
 	Author string `json:"author"`
 }
 type SInput struct {
-	Email string `json:"email" binding:"required"`
+	Email   string `json:"email" binding:"required"`
+	Message string `json:"message" binding:"required"`
 }
 
 func Insert(c *gin.Context) {
@@ -102,7 +103,7 @@ func Mail(c *gin.Context) {
 		return
 	}
 	to, cc := []string{input.Email}, []string{}
-	sbj, msg := "GoMailer", "Mailing with Smtp-Golang\n\nBest Regard,\nDirgantoro\t(CEO)"
+	sbj, msg := "GoMailer", input.Message+"\n\nBest Regard,\nDirgantoro\t(CEO)"
 	if err := Mailer(to, cc, sbj, msg); err != nil {
 		log.Fatal(err.Error())
 	}
