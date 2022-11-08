@@ -65,7 +65,7 @@ func Finds(c *gin.Context) {
 		rows.Scan(&book.ID, &book.Title, &book.Author)
 		books = append(books, book)
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessFinds, "data": books})
+	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessFinds, "data": books, "language": "世界"})
 }
 func Find(c *gin.Context) {
 	var book models.Book
