@@ -27,5 +27,12 @@ func main() {
 		v2.GET("article/:id", controllers.Find)
 		v2.DELETE("article/:id", controllers.Delete)
 	}
+	v3 := r.Group("/v3")
+	{
+		v3.POST("article", controllers.Insert)
+		v3.GET("articles", controllers.Finds)
+		v3.GET("article/:id", controllers.Find)
+		v3.DELETE("article/:id", controllers.Delete)
+	}
 	r.Run()
 }
