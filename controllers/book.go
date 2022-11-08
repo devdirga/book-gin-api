@@ -55,7 +55,7 @@ func Insert(c *gin.Context) {
 func Finds(c *gin.Context) {
 	rows, err := models.Db.Query(models.Finds)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
 	defer rows.Close()
@@ -92,7 +92,7 @@ func Upload(c *gin.Context) {
 	ext := filepath.Ext(file.Filename)
 	newFile := uuid.New().String() + ext
 	if err := c.SaveUploadedFile(file, path.Join("upload", newFile)); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessUpload})
@@ -104,7 +104,7 @@ func Mail(c *gin.Context) {
 		return
 	}
 	to, cc := []string{input.Email}, []string{}
-	if err := Mailer(to, cc, input.Subject, input.Message+"\n\nBest Regard,\nDirgantoro\t(CEO)"); err != nil {
+	if err := Mailer(to, cc, input.Subject, input.Message); err != nil {
 		log.Fatal(err.Error())
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessMail})
