@@ -1,2 +1,2 @@
 # book-gin-api
-simple api using gin
+simple api using gin framework
