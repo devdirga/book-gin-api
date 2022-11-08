@@ -7,7 +7,7 @@ type Book struct {
 }
 
 var Create = "create table if not exists books (id integer primary key autoincrement, title text not null, author text not null);"
-var Insert = "insert into books(title,author)VALUES(?,?)"
+var Insert = "insert into books(title,author)values(?,?)"
 var Update = "update books set title=?,author=? where id=?"
 var Delete = "delete from books where id=?"
 var Finds = "select id,title,author from books"
