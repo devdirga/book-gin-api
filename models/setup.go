@@ -9,23 +9,23 @@ import (
 var Db *sql.DB
 
 func Conn() error {
-	db, err := sql.Open("sqlite3", "book.db")
-	if err != nil {
-		return err
+	d, e := sql.Open("sqlite3", "book.db")
+	if e != nil {
+		return e
 	}
-	trans, err := db.Begin()
-	if err != nil {
-		return err
+	t, e := d.Begin()
+	if e != nil {
+		return e
 	}
-	stmt, err := trans.Prepare(Create)
-	if err != nil {
-		return err
+	s, e := t.Prepare(Create)
+	if e != nil {
+		return e
 	}
-	defer stmt.Close()
-	if _, err = stmt.Exec(); err != nil {
-		return err
+	defer s.Close()
+	if _, e = s.Exec(); e != nil {
+		return e
 	}
-	trans.Commit()
-	Db = db
+	t.Commit()
+	Db = d
 	return nil
 }

@@ -30,32 +30,32 @@ type SInput struct {
 
 func Insert(c *gin.Context) {
 	var input CInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	if e := c.ShouldBindJSON(&input); e != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	transaction, err := m.Db.Begin()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	transaction, e := m.Db.Begin()
+	if e != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	stmnt, err := transaction.Prepare(m.Insert)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	stmnt, e := transaction.Prepare(m.Insert)
+	if e != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	defer stmnt.Close()
-	if _, err = stmnt.Exec(input.Title, input.Author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	if _, e = stmnt.Exec(input.Title, input.Author); e != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	transaction.Commit()
 	c.JSON(http.StatusOK, gin.H{"msg": m.MsgCreate})
 }
 func Finds(c *gin.Context) {
-	rows, err := m.Db.Query(m.Finds)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	rows, e := m.Db.Query(m.Finds)
+	if e != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	defer rows.Close()
@@ -70,51 +70,51 @@ func Finds(c *gin.Context) {
 func Find(c *gin.Context) {
 	var book m.Book
 	row := m.Db.QueryRow(m.Find, c.Param("id"))
-	if err := row.Scan(&book.ID, &book.Title, &book.Author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	if e := row.Scan(&book.ID, &book.Title, &book.Author); e != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": m.MsgFind, "data": book})
 }
 func Delete(c *gin.Context) {
-	if _, err := m.Db.Exec(m.Delete, c.Param("id")); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	if _, e := m.Db.Exec(m.Delete, c.Param("id")); e != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": m.MsgDelete})
 }
 func Upload(c *gin.Context) {
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	file, e := c.FormFile("file")
+	if e != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	ext := filepath.Ext(file.Filename)
-	newFile := uuid.New().String() + ext
-	if err := c.SaveUploadedFile(file, path.Join("upload", newFile)); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	nFile := uuid.New().String() + ext
+	if e := c.SaveUploadedFile(file, path.Join("upload", nFile)); e != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": m.MsgUpload})
 }
 func Mail(c *gin.Context) {
 	var input SInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+	if e := c.ShouldBindJSON(&input); e != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	to, cc := []string{input.Email}, []string{}
-	if err := Mailer(to, cc, input.Subject, input.Message); err != nil {
-		log.Fatal(err.Error())
+	if e := Mailer(to, cc, input.Subject, input.Message); e != nil {
+		log.Fatal(e.Error())
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": m.MsgMail})
 }
 func Mailer(to []string, cc []string, sbj, msg string) error {
-	err := smtp.SendMail(
+	e := smtp.SendMail(
 		f.Sprintf("%s:%d", m.Hst, m.Prt), smtp.PlainAuth("", m.Mail, m.Pwd, m.Hst), m.Mail,
 		append(to, cc...), []byte(f.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", m.Sndr, strings.Join(to, ","), strings.Join(cc, ","), sbj, msg)))
-	if err != nil {
-		return err
+	if e != nil {
+		return e
 	}
 	return nil
 }
