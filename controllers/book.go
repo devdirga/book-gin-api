@@ -50,7 +50,7 @@ func Insert(c *gin.Context) {
 		return
 	}
 	transaction.Commit()
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccCreate})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgCreate})
 }
 func Finds(c *gin.Context) {
 	rows, err := m.Db.Query(m.Finds)
@@ -65,7 +65,7 @@ func Finds(c *gin.Context) {
 		rows.Scan(&book.ID, &book.Title, &book.Author)
 		books = append(books, book)
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccFinds, "data": books, "language": "世界"})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgFinds, "data": books, "language": "世界"})
 }
 func Find(c *gin.Context) {
 	var book m.Book
@@ -74,14 +74,14 @@ func Find(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccFind, "data": book})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgFind, "data": book})
 }
 func Delete(c *gin.Context) {
 	if _, err := m.Db.Exec(m.Delete, c.Param("id")); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccDelete})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgDelete})
 }
 func Upload(c *gin.Context) {
 	file, err := c.FormFile("file")
@@ -95,7 +95,7 @@ func Upload(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccUpload})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgUpload})
 }
 func Mail(c *gin.Context) {
 	var input SInput
@@ -107,7 +107,7 @@ func Mail(c *gin.Context) {
 	if err := Mailer(to, cc, input.Subject, input.Message); err != nil {
 		log.Fatal(err.Error())
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgSccMail})
+	c.JSON(http.StatusOK, gin.H{"msg": m.MsgMail})
 }
 func Mailer(to []string, cc []string, subject, message string) error {
 	err := smtp.SendMail(
