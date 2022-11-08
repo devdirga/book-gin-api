@@ -109,10 +109,10 @@ func Mail(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": m.MsgMail})
 }
-func Mailer(to []string, cc []string, subject, message string) error {
+func Mailer(to []string, cc []string, sbj, msg string) error {
 	err := smtp.SendMail(
-		f.Sprintf("%s:%d", m.Host, m.Port), smtp.PlainAuth("", m.Email, m.Password, m.Host), m.Email,
-		append(to, cc...), []byte(f.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", m.Sender, strings.Join(to, ","), strings.Join(cc, ","), subject, message)))
+		f.Sprintf("%s:%d", m.Hst, m.Prt), smtp.PlainAuth("", m.Mail, m.Pwd, m.Hst), m.Mail,
+		append(to, cc...), []byte(f.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", m.Sndr, strings.Join(to, ","), strings.Join(cc, ","), sbj, msg)))
 	if err != nil {
 		return err
 	}

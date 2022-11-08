@@ -13,11 +13,11 @@ var Delete = "delete from books where id=?"
 var Finds = "select id,title,author from books"
 var Find = "select id,title,author from books where id=?"
 
-var Host = "smtp.gmail.com"
-var Port = 587
-var Sender = "PT. Digital Creative Studio <dirgantoro.facebook@gmail.com>"
-var Email = "dirgantoro.facebook@gmail.com"
-var Password = "clzciwwmpbidehpk"
+var Hst = "smtp.gmail.com"
+var Prt = 587
+var Sndr = "PT. Digital Creative Studio <dirgantoro.facebook@gmail.com>"
+var Mail = "dirgantoro.facebook@gmail.com"
+var Pwd = "clzciwwmpbidehpk"
 
 var MsgCreate = "Success create book"
 var MsgFinds = "Success find books"
