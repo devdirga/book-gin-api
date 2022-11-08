@@ -16,4 +16,5 @@
 gin-api
 book.db
 upload/
+.vscode/
 .DS_Store
