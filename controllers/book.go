@@ -24,6 +24,7 @@ type UInput struct {
 }
 type SInput struct {
 	Email   string `json:"email" binding:"required"`
+	Subject string `json:"subject" binding:"required"`
 	Message string `json:"message" binding:"required"`
 }
 
@@ -99,12 +100,11 @@ func Upload(c *gin.Context) {
 func Mail(c *gin.Context) {
 	var input SInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
 	to, cc := []string{input.Email}, []string{}
-	sbj, msg := "GoMailer", input.Message+"\n\nBest Regard,\nDirgantoro\t(CEO)"
-	if err := Mailer(to, cc, sbj, msg); err != nil {
+	if err := Mailer(to, cc, input.Subject, input.Message+"\n\nBest Regard,\nDirgantoro\t(CEO)"); err != nil {
 		log.Fatal(err.Error())
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": models.MessageSuccessMail})
