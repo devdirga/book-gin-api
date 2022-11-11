@@ -4,11 +4,11 @@ import (
 	f "fmt"
 	m "go/gin-api/models"
 	"log"
-	"net/http"
+	h "net/http"
 	"net/smtp"
 	"path"
 	"path/filepath"
-	"strings"
+	s "strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -29,90 +29,90 @@ type SInput struct {
 }
 
 func Insert(c *gin.Context) {
-	var input CInput
-	if e := c.ShouldBindJSON(&input); e != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+	var i CInput
+	if e := c.ShouldBindJSON(&i); e != nil {
+		c.JSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	transaction, e := m.Db.Begin()
+	trx, e := m.Db.Begin()
 	if e != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+		c.JSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	stmnt, e := transaction.Prepare(m.Insert)
+	stmnt, e := trx.Prepare(m.Insert)
 	if e != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+		c.JSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	defer stmnt.Close()
-	if _, e = stmnt.Exec(input.Title, input.Author); e != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+	if _, e = stmnt.Exec(i.Title, i.Author); e != nil {
+		c.JSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	transaction.Commit()
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgCreate})
+	trx.Commit()
+	c.JSON(h.StatusOK, gin.H{"msg": m.MsgCreate})
 }
 func Finds(c *gin.Context) {
-	rows, e := m.Db.Query(m.Finds)
+	rws, e := m.Db.Query(m.Finds)
 	if e != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+		c.JSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	defer rows.Close()
-	books := make([]m.Book, 0)
-	book := m.Book{}
-	for rows.Next() {
-		rows.Scan(&book.ID, &book.Title, &book.Author)
-		books = append(books, book)
+	defer rws.Close()
+	bks := make([]m.Book, 0)
+	bk := m.Book{}
+	for rws.Next() {
+		rws.Scan(&bk.ID, &bk.Title, &bk.Author)
+		bks = append(bks, bk)
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgFinds, "data": books, "language": "世界"})
+	c.JSON(h.StatusOK, gin.H{"msg": m.MsgFinds, "data": bks, "language": "世界"})
 }
 func Find(c *gin.Context) {
-	var book m.Book
+	var b m.Book
 	row := m.Db.QueryRow(m.Find, c.Param("id"))
-	if e := row.Scan(&book.ID, &book.Title, &book.Author); e != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+	if e := row.Scan(&b.ID, &b.Title, &b.Author); e != nil {
+		c.JSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgFind, "data": book})
+	c.JSON(h.StatusOK, gin.H{"msg": m.MsgFind, "data": b})
 }
 func Delete(c *gin.Context) {
 	if _, e := m.Db.Exec(m.Delete, c.Param("id")); e != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+		c.AbortWithStatusJSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgDelete})
+	c.JSON(h.StatusOK, gin.H{"msg": m.MsgDelete})
 }
 func Upload(c *gin.Context) {
 	file, e := c.FormFile("file")
 	if e != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+		c.AbortWithStatusJSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	ext := filepath.Ext(file.Filename)
 	nFile := uuid.New().String() + ext
 	if e := c.SaveUploadedFile(file, path.Join("upload", nFile)); e != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+		c.AbortWithStatusJSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgUpload})
+	c.JSON(h.StatusOK, gin.H{"msg": m.MsgUpload})
 }
 func Mail(c *gin.Context) {
 	var input SInput
 	if e := c.ShouldBindJSON(&input); e != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": e.Error()})
+		c.JSON(h.StatusBadRequest, gin.H{"msg": e.Error()})
 		return
 	}
 	to, cc := []string{input.Email}, []string{}
 	if e := Mailer(to, cc, input.Subject, input.Message); e != nil {
 		log.Fatal(e.Error())
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": m.MsgMail})
+	c.JSON(h.StatusOK, gin.H{"msg": m.MsgMail})
 }
 func Mailer(to []string, cc []string, sbj, msg string) error {
 	e := smtp.SendMail(
 		f.Sprintf("%s:%d", m.Hst, m.Prt), smtp.PlainAuth("", m.Mail, m.Pwd, m.Hst), m.Mail,
-		append(to, cc...), []byte(f.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", m.Sndr, strings.Join(to, ","), strings.Join(cc, ","), sbj, msg)))
+		append(to, cc...), []byte(f.Sprintf("from: %s\nto: %s\ncc: %s\nsubject: %s\n\n%s", m.Sndr, s.Join(to, ","), s.Join(cc, ","), sbj, msg)))
 	if e != nil {
 		return e
 	}
