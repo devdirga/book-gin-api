@@ -6,22 +6,24 @@ type Book struct {
 	Author string `json:"author"`
 }
 
-var Create = "create table if not exists books (id integer primary key autoincrement, title text not null, author text not null);"
-var Insert = "insert into books(title,author)values(?,?)"
-var Update = "update books set title=?,author=? where id=?"
-var Delete = "delete from books where id=?"
-var Finds = "select id,title,author from books"
-var Find = "select id,title,author from books where id=?"
+const (
+	Create = "create table if not exists books (id integer primary key autoincrement, title text not null, author text not null);"
+	Insert = "insert into books(title,author)values(?,?)"
+	Update = "update books set title=?,author=? where id=?"
+	Delete = "delete from books where id=?"
+	Finds  = "select id,title,author from books"
+	Find   = "select id,title,author from books where id=?"
 
-var Hst = "smtp.gmail.com"
-var Prt = 587
-var Sndr = "PT. Digital Creative Studio <dirgantoro.facebook@gmail.com>"
-var Mail = "dirgantoro.facebook@gmail.com"
-var Pwd = "clzciwwmpbidehpk"
+	Hst  = "smtp.gmail.com"
+	Prt  = 587
+	Sndr = "PT. Digital Creative Studio <dirgantoro.facebook@gmail.com>"
+	Mail = "dirgantoro.facebook@gmail.com"
+	Pwd  = "clzciwwmpbidehpk"
 
-var MsgCreate = "Success create book"
-var MsgFinds = "Success find books"
-var MsgFind = "Success find book"
-var MsgDelete = "Success delete book"
-var MsgUpload = "Success upload file"
-var MsgMail = "Success send mail"
+	MsgCreate = "Success create book"
+	MsgFinds  = "Success find books"
+	MsgFind   = "Success find book"
+	MsgDelete = "Success delete book"
+	MsgUpload = "Success upload file"
+	MsgMail   = "Success send mail"
+)
